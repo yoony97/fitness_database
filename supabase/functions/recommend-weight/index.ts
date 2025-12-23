@@ -32,13 +32,14 @@ serve(async (req) => {
         // Fetch Exercise Name
         const { data: exerciseData } = await supabase
             .from("exercises")
-            .select("exercise_name")
+            .select("exercise_name, equipment")
             .eq("id", exercise_id)
             .single();
 
         if (!exerciseData) throw new Error("Exercise not found");
 
         const exerciseName = exerciseData.exercise_name;
+        const equipment = exerciseData.equipment;
 
         // Fetch User Profile
         const { data: userData } = await supabase
@@ -93,7 +94,10 @@ serve(async (req) => {
 
         let recommendedWeight = 0;
 
-        if (estimated1RM > 0) {
+        if (equipment === 'body-weight') {
+            recommendedWeight = 0;
+            method = "bodyweight_default";
+        } else if (estimated1RM > 0) {
             // Inverse Epley: Weight = 1RM / (1 + 0.0333 * target_reps)
             // We usually target RPE 8-9, so maybe take 90% of that max theoretical rep weight?
             // Let's stick to simple formula first.
@@ -123,4 +127,3 @@ serve(async (req) => {
         });
     }
 });
-
