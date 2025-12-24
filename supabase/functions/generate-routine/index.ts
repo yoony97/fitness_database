@@ -83,23 +83,38 @@ serve(async (req) => {
         const selectedExercises = selectExercises(exercises, totalToSelect);
         console.log(`[GenerateRoutine] Selected ${selectedExercises.length} exercises.`);
 
-        // 4. Construct Response
+
+        // 4. Construct Response matching WorkoutRoutine domain type
+        const routineCategory = (goal === 'cardio' || goal === 'endurance') ? 'cardio' : 'strength';
+
         const routine = {
             name: `AI Generated ${goal} Workout`,
             description: `Focus on ${target_muscle_groups?.join(", ") || "Full Body"}`,
-            estimated_duration: duration_minutes,
+            estimatedDuration: duration_minutes,
+            category: routineCategory,
+            difficultyLevel: 'intermediate', // Default to intermediate for now
+            isPublic: false,
+            isFavorite: false,
             exercises: selectedExercises.map((ex, index) => ({
-                exercise_id: ex.id,
-                exercise_name: ex.exercise_name,
-                exercise_name_ko: ex.exercise_name_ko,
+                exerciseId: ex.id,
+                orderIndex: index,
                 sets: 3,
                 reps: 10,
-                order_index: index,
-                rest_time: 60,
-                tips: (ex.tips_ko && ex.tips_ko.length > 0) ? ex.tips_ko[0] : "",
-                video_path: ex.video_path,
-                thumbnail_path: ex.thumbnail_path,
-                icon_path: ex.icon_path
+                restTime: 60,
+                notes: (ex.tips_ko && ex.tips_ko.length > 0) ? ex.tips_ko[0] : "",
+                exercise: {
+                    exerciseId: ex.id,
+                    name: ex.exercise_name,
+                    nameKo: ex.exercise_name_ko,
+                    video: ex.video_path,
+                    thumbnail: ex.thumbnail_path,
+                    icon: ex.icon_path,
+
+                    // Essential fields for ExerciseMinimal/Exercise
+                    primaryMuscle: ex.primary_muscle || 'full-body',
+                    type: ex.type || 'strength',
+                    difficultyLevel: ex.difficulty_level?.toLowerCase() || 'intermediate'
+                }
             }))
         };
 
